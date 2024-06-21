@@ -1,0 +1,51 @@
+---
+- name: Check if LibreOffice is installed
+  become: true
+  ansible.builtin.shell:
+    cmd: dpkg -l | grep libreoffice
+  changed_when: false
+  register: libreoffice_status
+  ignore_errors: true
+
+- block:
+    - name: Map security level to numeric value
+      ansible.builtin.set_fact:
+        numeric_security_level: "{{ security_level_map[macro_security_level] }}"
+      vars:
+        security_level_map:
+          low: 0
+          medium: 1
+          high: 2
+          very-high: 3
+
+    - name: Get all home dirs
+      ansible.builtin.find:
+        paths: /home
+        file_type: directory
+      register: home_dirs
+
+    - name: Ensure LibreOffice config folder is absent
+      become: true
+      ansible.builtin.file:
+        path: "{{ item.path }}/.config/libreoffice"
+        state: absent
+      when: "'libreoffice' in libreoffice_status.stdout"
+      loop: "{{ home_dirs.files }}"
+
+    - name: Replace MacroSecurity values
+      become: true
+      ansible.builtin.replace:
+        path: /usr/lib/libreoffice/share/registry/main.xcd
+        regexp: "{{ item.regex }}"
+        replace: "{{ item.replace }}"
+      loop:
+        - regex: (<prop oor:name="MacroSecurityLevel" oor:type="xs:int" oor:nillable="false"><value>)\d(</value></prop>)
+          replace: \g<1>{{ numeric_security_level }}\g<2>
+        - regex: (<prop oor:name="DisableMacrosExecution" oor:type="xs:boolean" oor:nillable="false"><value>)\w+(</value></prop>)
+          replace: \g<1>{{ disable_macros_execution | lower }}\g<2>
+      when: "'libreoffice' in libreoffice_status.stdout"
+
+  rescue:
+    - name: Handle application not installed
+      ansible.builtin.debug:
+        msg: libreoffice is not installed, skipping remaining tasks
