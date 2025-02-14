@@ -36,13 +36,11 @@
       become: true
       ansible.builtin.replace:
         path: /usr/lib/libreoffice/share/registry/main.xcd
-        regexp: "{{ item.regex }}"
-        replace: "{{ item.replace }}"
-      loop:
-        - regex: (<prop oor:name="MacroSecurityLevel" oor:type="xs:int" oor:nillable="false"><value>)\d(</value></prop>)
-          replace: \g<1>{{ numeric_security_level }}\g<2>
-        - regex: (<prop oor:name="DisableMacrosExecution" oor:type="xs:boolean" oor:nillable="false"><value>)\w+(</value></prop>)
-          replace: \g<1>{{ disable_macros_execution | lower }}\g<2>
+        regexp: '(?s)(<prop[^>]*oor:name="{{ item.key }}"[^>]*>.*?<value>).*?(</value>)'
+        replace: '\g<1>{{ item.value }}\g<2>'
+      loop:  
+        - { key: "MacroSecurityLevel", value: "{{ numeric_security_level }}" }
+        - { key: "DisableMacrosExecution", value: "{{ disable_macros_execution | lower }}" }
       when: "'libreoffice' in libreoffice_status.stdout"
 
   rescue:
