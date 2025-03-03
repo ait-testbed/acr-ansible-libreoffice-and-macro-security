@@ -1,4 +1,12 @@
 ---
+
+- name: Install LibreOffice if not installed
+  become: true
+  apt:
+    name: libreoffice
+    state: present
+    update_cache: yes
+    
 - name: Check if LibreOffice is installed
   become: true
   ansible.builtin.shell:
