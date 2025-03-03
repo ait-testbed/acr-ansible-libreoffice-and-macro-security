@@ -1,6 +1,5 @@
 # Ansible-Role:  acr-ansible-libreoffice-macro-security
-
-AIT-CyberRange:  Set libreoffice macro security.
+install libreoffice and set libreoffice macro security.
 
 
 ## Requirements
