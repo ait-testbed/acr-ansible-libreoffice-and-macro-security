@@ -28,7 +28,6 @@
       ansible.builtin.file:
         path: "{{ item.path }}/.config/libreoffice"
         state: absent
-      when: "'libreoffice' in libreoffice_status.stdout"
       loop: "{{ home_dirs.files }}"
 
     - name: Replace MacroSecurity values
@@ -40,6 +39,4 @@
       loop:  
         - { key: "MacroSecurityLevel", value: "{{ numeric_security_level }}" }
         - { key: "DisableMacrosExecution", value: "{{ disable_macros_execution | lower }}" }
-      when: "'libreoffice' in libreoffice_status.stdout"
-
 
