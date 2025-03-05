@@ -1,5 +1,3 @@
----
-
 - name: Install LibreOffice if not installed
   become: true
   apt:
@@ -7,13 +5,6 @@
     state: present
     update_cache: yes
     
-- name: Check if LibreOffice is installed
-  become: true
-  ansible.builtin.shell:
-    cmd: dpkg -l | grep libreoffice
-  changed_when: false
-  register: libreoffice_status
-  ignore_errors: true
 
 - block:
     - name: Map security level to numeric value
@@ -51,7 +42,4 @@
         - { key: "DisableMacrosExecution", value: "{{ disable_macros_execution | lower }}" }
       when: "'libreoffice' in libreoffice_status.stdout"
 
-  rescue:
-    - name: Handle application not installed
-      ansible.builtin.debug:
-        msg: libreoffice is not installed, skipping remaining tasks
+
